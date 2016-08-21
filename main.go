@@ -22,39 +22,9 @@ import (
 	"github.com/decred/dcrd/chaincfg/chainec"
 	"github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/decred/dcrutil"
-	"github.com/decred/dcrutil/hdkeychain"
+	//"github.com/decred/dcrutil/hdkeychain"
 	//"github.com/decred/dcrwallet/pgpwordlist"
 )
-
-// The hierarchy described by BIP0043 is:
-//  m/<purpose>'/*
-// This is further extended by BIP0044 to:
-//  m/44'/<coin type>'/<account>'/<branch>/<address index>
-//
-// The branch is 0 for external addresses and 1 for internal addresses.
-
-// maxCoinType is the maximum allowed coin type used when structuring
-// the BIP0044 multi-account hierarchy.  This value is based on the
-// limitation of the underlying hierarchical deterministic key
-// derivation.
-const maxCoinType = hdkeychain.HardenedKeyStart - 1
-
-// MaxAccountNum is the maximum allowed account number.  This value was
-// chosen because accounts are hardened children and therefore must
-// not exceed the hardened child range of extended keys and it provides
-// a reserved account at the top of the range for supporting imported
-// addresses.
-const MaxAccountNum = hdkeychain.HardenedKeyStart - 2 // 2^31 - 2
-
-// ExternalBranch is the child number to use when performing BIP0044
-// style hierarchical deterministic key derivation for the external
-// branch.
-const ExternalBranch uint32 = 0
-
-// InternalBranch is the child number to use when performing BIP0044
-// style hierarchical deterministic key derivation for the internal
-// branch.
-const InternalBranch uint32 = 1
 
 var curve = secp256k1.S256()
 
@@ -64,11 +34,6 @@ var params = chaincfg.MainNetParams
 var getHelp = flag.Bool("h", false, "Print help message")
 var testnet = flag.Bool("testnet", false, "")
 var simnet = flag.Bool("simnet", false, "")
-
-// var noseed = flag.Bool("noseed", false, "Generate a single keypair instead of "+
-// 	"an HD extended seed")
-var verify = flag.Bool("verify", false, "Verify a seed by generating the first "+
-	"address")
 var pattern1 = flag.String("pattern1", "", "Primary pattern. dcrvanity will exit if this matches.")
 var pattern2 = flag.String("pattern2", "", "Secondary pattern. dcrvanity will NOT exit if this matches.")
 
@@ -159,16 +124,16 @@ func searchKeyPair(primaryPattern, secondaryPattern string, inclusive bool) (*se
 		// because if the secondary does't match, then neither will primary.
 		if inclusive {
 			if regexSecondary != nil && regexSecondary.MatchString(addr0.EncodeAddress()) {
-				fmt.Printf("\r%d\n%s\n", i, addr0.EncodeAddress())
-				fmt.Printf("%x\n", pub.SerializeCompressed())
+				fmt.Printf("\r%d\nAddr: %s\n", i, addr0.EncodeAddress())
+				fmt.Printf("Pubkey compressed: %x\n", pub.SerializeCompressed())
 
 				privX := secp256k1.PrivateKey{
 					PublicKey: key0.PublicKey,
 					D:         key0.D,
 				}
-				//privWifX := NewWIF(privX)
-				//fmt.Printf("%s\n", privWifX.String())
-				fmt.Println(privX)
+				privWifX := NewWIF(privX)
+				fmt.Printf("Private key (WIF-encoded): %s\n", privWifX.String())
+				fmt.Println("Private key (secp256k1): ", privX)
 
 				if regexPrimary != nil && regexPrimary.MatchString(addr0.EncodeAddress()) {
 					key = key0
@@ -237,7 +202,6 @@ func searchKeyPair(primaryPattern, secondaryPattern string, inclusive bool) (*se
 	//return nil
 }
 
-
 func main() {
 	if runtime.GOOS == "windows" {
 		newLine = "\r\n"
@@ -287,9 +251,10 @@ func main() {
 		return
 	}
 
+	fmt.Println("spew of private key (secp256k1) and address:")
 	spew.Dump(priv, addr)
 	privWif := NewWIF(*priv)
-	fmt.Printf("%v\n%s\n", privWif, privWif.String())
+	fmt.Printf("Private key (WIF-encoded): %s\nWIF struct: %v\n", privWif.String(), privWif)
 
 	// fmt.Printf("Successfully generated keypair and stored it in %v.\n",
 	// fn)
