@@ -237,84 +237,13 @@ func searchKeyPair(primaryPattern, secondaryPattern string, inclusive bool) (*se
 	//return nil
 }
 
-// deriveCoinTypeKey derives the cointype key which can be used to derive the
-// extended key for an account according to the hierarchy described by BIP0044
-// given the coin type key.
-//
-// In particular this is the hierarchical deterministic extended key path:
-// m/44'/<coin type>'
-func deriveCoinTypeKey(masterNode *hdkeychain.ExtendedKey,
-	coinType uint32) (*hdkeychain.ExtendedKey, error) {
-	// Enforce maximum coin type.
-	if coinType > maxCoinType {
-		return nil, fmt.Errorf("bad coin type")
-	}
-
-	// The hierarchy described by BIP0043 is:
-	//  m/<purpose>'/*
-	// This is further extended by BIP0044 to:
-	//  m/44'/<coin type>'/<account>'/<branch>/<address index>
-	//
-	// The branch is 0 for external addresses and 1 for internal addresses.
-
-	// Derive the purpose key as a child of the master node.
-	purpose, err := masterNode.Child(44 + hdkeychain.HardenedKeyStart)
-	if err != nil {
-		return nil, err
-	}
-
-	// Derive the coin type key as a child of the purpose key.
-	coinTypeKey, err := purpose.Child(coinType + hdkeychain.HardenedKeyStart)
-	if err != nil {
-		return nil, err
-	}
-
-	return coinTypeKey, nil
-}
-
-// deriveAccountKey derives the extended key for an account according to the
-// hierarchy described by BIP0044 given the master node.
-//
-// In particular this is the hierarchical deterministic extended key path:
-//   m/44'/<coin type>'/<account>'
-func deriveAccountKey(coinTypeKey *hdkeychain.ExtendedKey,
-	account uint32) (*hdkeychain.ExtendedKey, error) {
-	// Enforce maximum account number.
-	if account > MaxAccountNum {
-		return nil, fmt.Errorf("account num too high")
-	}
-
-	// Derive the account key as a child of the coin type key.
-	return coinTypeKey.Child(account + hdkeychain.HardenedKeyStart)
-}
-
-// checkBranchKeys ensures deriving the extended keys for the internal and
-// external branches given an account key does not result in an invalid child
-// error which means the chosen seed is not usable.  This conforms to the
-// hierarchy described by BIP0044 so long as the account key is already derived
-// accordingly.
-//
-// In particular this is the hierarchical deterministic extended key path:
-//   m/44'/<coin type>'/<account>'/<branch>
-//
-// The branch is 0 for external addresses and 1 for internal addresses.
-func checkBranchKeys(acctKey *hdkeychain.ExtendedKey) error {
-	// Derive the external branch as the first child of the account key.
-	if _, err := acctKey.Child(ExternalBranch); err != nil {
-		return err
-	}
-
-	// Derive the external branch as the second child of the account key.
-	_, err := acctKey.Child(InternalBranch)
-	return err
-}
 
 func main() {
 	if runtime.GOOS == "windows" {
 		newLine = "\r\n"
 	}
 	helpMessage := func() {
-		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-h] filename")
+		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-h]")
 		fmt.Println("Generate a Decred private and public key, with address matching pattern(s).")
 		//"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
