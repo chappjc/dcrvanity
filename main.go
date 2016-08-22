@@ -17,7 +17,7 @@ import (
 	"runtime"
 	//"strings"
 
-	"github.com/davecgh/go-spew/spew"
+	//"github.com/davecgh/go-spew/spew"
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainec"
 	"github.com/decred/dcrd/dcrec/secp256k1"
@@ -251,8 +251,10 @@ func main() {
 		return
 	}
 
-	fmt.Println("spew of private key (secp256k1) and address:")
-	spew.Dump(priv, addr)
+	//fmt.Println("spew of private key (secp256k1) and address:")
+	//spew.Dump(priv, addr)
+	fmt.Printf("Addr: %s\n", addr.EncodeAddress())
+	fmt.Println("Private key (secp256k1): ", priv)
 	privWif := NewWIF(*priv)
 	fmt.Printf("Private key (WIF-encoded): %s\nWIF struct: %v\n", privWif.String(), privWif)
 
