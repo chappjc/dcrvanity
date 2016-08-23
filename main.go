@@ -86,7 +86,7 @@ func searchKeyPair(regexPrimary, regexSecondary *regexp.Regexp,
 	var key *ecdsa.PrivateKey
 	var addr *dcrutil.AddressPubKeyHash
 
-	ticker := time.NewTicker(time.Millisecond * 200 * time.Duration(1 + math.Ceil((float64(*nCores) - 1)/1.5)))
+	ticker := time.NewTicker(time.Millisecond * 200 * time.Duration(1+math.Ceil((float64(*nCores)-1)/1.5)))
 
 	for i := int64(0); ; i++ {
 		select {
@@ -215,7 +215,7 @@ func main() {
 		newLine = "\r\n"
 	}
 	helpMessage := func() {
-		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-h]")
+		fmt.Println("Usage: dcrvanity [-pattern1=regexPat] [-pattern2=regexPat] [-N=n] [-pat1implies2] [-h]")
 		fmt.Println("Generate a Decred private and public key, with address matching pattern(s).")
 		//"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
@@ -291,7 +291,7 @@ func main() {
 
 	for i := 0; i < N; i++ {
 		// Stagger the launches so the display is not quite so jumpy
-		time.Sleep(time.Duration(125 * (N-1)) * time.Millisecond)
+		time.Sleep(time.Duration(125*(N-1)) * time.Millisecond)
 		wg.Add(1)
 		go keySearcher(regexPrimary, regexSecondary, inclusive, searchResultChan)
 	}
