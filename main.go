@@ -15,6 +15,7 @@ import (
 	//"io"
 	//"io/ioutil"
 	//"log"
+	"math"
 	"os"
 	"os/signal"
 	"regexp"
@@ -85,7 +86,7 @@ func searchKeyPair(regexPrimary, regexSecondary *regexp.Regexp,
 	var key *ecdsa.PrivateKey
 	var addr *dcrutil.AddressPubKeyHash
 
-	ticker := time.NewTicker(time.Millisecond * 200 * time.Duration(*nCores))
+	ticker := time.NewTicker(time.Millisecond * 200 * time.Duration(1 + math.Ceil((float64(*nCores) - 1)/1.5)))
 
 	for i := int64(0); ; i++ {
 		select {
@@ -96,16 +97,21 @@ func searchKeyPair(regexPrimary, regexSecondary *regexp.Regexp,
 			return nil, nil, nil
 		default:
 		}
+
+		// Generate public-private key pair
 		key0, err := ecdsa.GenerateKey(curve, rand.Reader)
 		if err != nil {
 			return nil, nil, err
 		}
+
+		// ecdsa.PublicKey with serialization functions
 		pub := secp256k1.PublicKey{
 			Curve: curve,
 			X:     key0.PublicKey.X,
 			Y:     key0.PublicKey.Y,
 		}
 
+		// PubKeyHashAddrID (Ds) followed by ripemd160 hash of secp256k1 pubkey
 		addr0, err := dcrutil.NewAddressPubKeyHash(Hash160(pub.SerializeCompressed()),
 			&params, chainec.ECTypeSecp256k1)
 		if err != nil {
@@ -284,7 +290,8 @@ func main() {
 	searchResultChan := make(chan keySearchResult)
 
 	for i := 0; i < N; i++ {
-		time.Sleep(time.Duration(100 * N) * time.Millisecond)
+		// Stagger the launches so the display is not quite so jumpy
+		time.Sleep(time.Duration(125 * (N-1)) * time.Millisecond)
 		wg.Add(1)
 		go keySearcher(regexPrimary, regexSecondary, inclusive, searchResultChan)
 	}
