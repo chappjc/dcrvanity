@@ -11,7 +11,7 @@ var ver = version{
 	Major: 0,
 	Minor: 1,
 	Patch: 0,
-	Label: "alpha"}
+	Label: "beta"}
 
 // CommitHash may be set on the build command line:
 // go build -ldflags "-X main.CommitHash=`git rev-parse HEAD`"
@@ -21,9 +21,9 @@ const appName string = "dcrvanity"
 
 func (v *version) String() string {
 	if v.Label != "" {
-		return fmt.Sprintf("%d.%d.%d-%s \"%s\"",
+		return fmt.Sprintf("%d.%d.%d-%s",
 			v.Major, v.Minor, v.Patch, v.Label)
 	}
-	return fmt.Sprintf("%d.%d.%d \"%s\"",
+	return fmt.Sprintf("%d.%d.%d",
 		v.Major, v.Minor, v.Patch)
 }

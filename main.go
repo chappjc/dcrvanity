@@ -88,6 +88,7 @@ func searchKeyPair(regexPrimary, regexSecondary *regexp.Regexp,
 
 	ticker := time.NewTicker(time.Millisecond * 200 * time.Duration(1+math.Ceil((float64(*nCores)-1)/1.5)))
 
+searchloop:
 	for i := int64(0); ; i++ {
 		select {
 		case <-ticker.C:
@@ -139,40 +140,41 @@ func searchKeyPair(regexPrimary, regexSecondary *regexp.Regexp,
 					addr = addr0
 					fmt.Printf("Woohoo!\n")
 					atomic.AddInt64(&searchIterator, i)
-					break
+					break searchloop
 				}
 			}
 		} else {
 			// primary match does not imply secondary, so check both separately
 			if regexSecondary != nil && regexSecondary.MatchString(addr0.EncodeAddress()) {
 				ii := atomic.LoadInt64(&searchIterator) + i
-				fmt.Printf("\r%d\n%s\n", ii, addr0.EncodeAddress())
-				fmt.Printf("%x\n", pub.SerializeCompressed())
+				fmt.Printf("\r%d\nAddr: %s\n", ii, addr0.EncodeAddress())
+				fmt.Printf("Pubkey compressed: %x\n", pub.SerializeCompressed())
 
 				privX := secp256k1.PrivateKey{
 					PublicKey: key0.PublicKey,
 					D:         key0.D,
 				}
 				privWifX := NewWIF(privX)
-				fmt.Printf("%s\n", privWifX.String())
+				fmt.Printf("Private key (WIF-encoded): %s\n", privWifX.String())
+				fmt.Println("Private key (secp256k1): ", privX)
 			}
 
+			// Primary does not require printing here since it will be displayed
+			// in main().  Get the keys and break.
 			if regexPrimary != nil && regexPrimary.MatchString(addr0.EncodeAddress()) {
-				ii := atomic.AddInt64(&searchIterator, i)
-				fmt.Printf("Woohoo!\n")
-				fmt.Printf("\r%d\n%s\n", ii, addr0.EncodeAddress())
-				fmt.Printf("%x\n", pub.SerializeCompressed())
+				atomic.AddInt64(&searchIterator, i)
+				fmt.Printf("\nWoohoo!\n")
 				key = key0
 				addr = addr0
 
-				privX := secp256k1.PrivateKey{
-					PublicKey: key0.PublicKey,
-					D:         key0.D,
-				}
-				privWifX := NewWIF(privX)
-				fmt.Printf("%s\n", privWifX.String())
+				// privX := secp256k1.PrivateKey{
+				// 	PublicKey: key0.PublicKey,
+				// 	D:         key0.D,
+				// }
+				//privWifX := NewWIF(privX)
+				//fmt.Printf("%s\n", privWifX.String())
 
-				break
+				break searchloop
 			}
 		}
 	}
@@ -234,6 +236,8 @@ func main() {
 
 	inclusive := *pat1implies2
 
+	fmt.Printf(appName+" version %s\n", ver.String())
+
 	var err error
 
 	if *getHelp {
@@ -263,10 +267,10 @@ func main() {
 			fmt.Printf("Failed to compile regexp %v: %v", pat, err)
 			return
 		}
+		fmt.Println("Primary pattern: ", regexPrimary.String())
 	} else {
 		fmt.Println("nil primary pattern. The program will never quit.")
 	}
-	fmt.Println("Primary pattern: ", regexPrimary.String())
 
 	// Secondary (report, but no exit) pattern
 	var regexSecondary *regexp.Regexp
@@ -278,25 +282,39 @@ func main() {
 			fmt.Printf("Failed to compile regexp %v: %v", pat, err)
 			return
 		}
+		fmt.Println("Secondary pattern: ", regexSecondary.String())
 	} else if inclusive {
 		fmt.Println("nil secondary pattern and inclusive is true. No addresses will be checked.")
 		return
 	}
-	fmt.Println("Secondary pattern: ", regexSecondary.String())
 
 	// Launch goroutines
 	N := int(*nCores)
 
+	// Wait for key search results or the quit signal
 	searchResultChan := make(chan keySearchResult)
+	searchResult := keySearchResult{}
+	go func() {
+		select {
+		case searchResult = <-searchResultChan:
+			close(quit)
+		case <-quit:
+		}
+	}()
 
+goroutineloop:
 	for i := 0; i < N; i++ {
 		// Stagger the launches so the display is not quite so jumpy
-		time.Sleep(time.Duration(125*(N-1)) * time.Millisecond)
+		time.Sleep(time.Duration(100*(N-1)) * time.Millisecond)
+		select {
+		case <-quit:
+			fmt.Println("quit signaled. Not launching more goroutines.")
+			break goroutineloop
+		default:
+		}
 		wg.Add(1)
 		go keySearcher(regexPrimary, regexSecondary, inclusive, searchResultChan)
 	}
-
-	searchResult := keySearchResult{}
 
 	// Only accept a single CTRL+C
 	c := make(chan os.Signal, 1)
@@ -312,27 +330,14 @@ func main() {
 		return
 	}()
 
-	select {
-	case searchResult = <-searchResultChan:
-		close(quit)
-	case <-quit:
-	}
-
+	// Allow each goroutine to receive the quit signal and finish up
 	wg.Wait()
-
-	// Single keypair generation/search
-	// priv, addr, err := searchKeyPair(*pattern1, *pattern2, true)
-	// if err != nil {
-	// 	fmt.Printf("Error generating key pair: %v\n", err.Error())
-	// 	return
-	// }
 
 	if searchResult.priv != nil {
 		fmt.Printf("Addr: %s\n", searchResult.addr.EncodeAddress())
 		fmt.Println("Private key (secp256k1): ", searchResult.priv)
 		privWif := NewWIF(*searchResult.priv)
-		fmt.Printf("Private key (WIF-encoded): %s\nWIF struct: %v\n",
-			privWif.String(), privWif)
+		fmt.Println("Private key (WIF-encoded): ", privWif)
 	}
 
 	return
