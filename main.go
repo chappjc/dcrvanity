@@ -6,21 +6,16 @@
 package main
 
 import (
-	//"bufio"
-	//"bytes"
 	"crypto/ecdsa"
 	"crypto/rand"
 	"flag"
 	"fmt"
-	//"io"
-	//"io/ioutil"
 	//"log"
 	"math"
 	"os"
 	"os/signal"
 	"regexp"
 	"runtime"
-	//"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -32,6 +27,7 @@ import (
 	"github.com/decred/dcrutil"
 )
 
+// TODO: Use a logger, if even golang's logger
 // var (
 // 	Trace   *log.Logger
 // 	Info    *log.Logger
@@ -218,24 +214,22 @@ func main() {
 		newLine = "\r\n"
 	}
 	helpMessage := func() {
-		fmt.Println("Usage: dcrvanity [-pattern1=regexPat] [-pattern2=regexPat] [-N=n] [-pat1implies2] [-h]")
-		fmt.Println("Generate a Decred private and public key, with address matching pattern(s).")
-		//"These are output to the file 'filename'.\n")
+		fmt.Println("Usage: dcrvanity [-pattern1] [-pattern2] [-N] [-pat1implies2] [-h]")
+		fmt.Println("Generate a Decred public/private key pair, with address matching pattern(s).")
 		fmt.Println("  -h \t\tPrint this message")
-		fmt.Println("  -testnet \tGenerate a testnet key instead of mainnet")
-		fmt.Println("  -simnet \tGenerate a simnet key instead of mainnet")
-		fmt.Println("  -pattern1 \tPrimary pattern. dcrvanity will exit if this matches.")
-		fmt.Println("  -pattern2 \tSecondary pattern. dcrvanity will NOT exit if this matches.")
-		fmt.Println("  -pat1implies2 \tA match on pattern1 implies a match on pattern2.")
-		fmt.Println("  -N \tNumber of goroutines to launch (essentially the number of cores to use).")
+		fmt.Println("  -pattern1=    (string) Primary regexp pattern. Exit on match.")
+		fmt.Println("  -pattern2=    (string) Secondary regexp pattern. Print and continue on match.")
+		fmt.Println("  -pat1implies2 (bool) A match on pattern1 implies a match on pattern2. \n" +
+		            "                Matching on pattern1 skipped unless pattern2 matches.")
+		fmt.Println("  -N=           (int) Number of goroutines to launch (~number of cores to use).")
+		fmt.Println("  -testnet      (bool) Generate a testnet key instead of mainnet.")
+		fmt.Println("  -simnet       (bool) Generate a simnet key instead of mainnet.")
 	}
 
 	setupFlags(helpMessage, flag.CommandLine)
 	flag.Parse()
 
 	//InitLog(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
-
-	inclusive := *pat1implies2
 
 	fmt.Printf(appName+" version %s\n", ver.String())
 
@@ -276,6 +270,7 @@ func main() {
 	// Secondary (report, but no exit) pattern
 	var regexSecondary *regexp.Regexp
 	secondaryPattern := *pattern2
+	inclusive := *pat1implies2
 	if len(secondaryPattern) > 0 {
 		pat := "^Ds" + secondaryPattern
 		regexSecondary, err = regexp.Compile(pat)
@@ -326,7 +321,7 @@ goroutineloop:
 		<-c
 		signal.Stop(c)
 		// Close the channel so multiple goroutines can get the message
-		fmt.Print("CTRL+C hit.  Closing goroutines.")
+		fmt.Print("CTRL+C hit.  Terminating searchers.")
 		close(quit)
 		return
 	}()
@@ -339,6 +334,7 @@ goroutineloop:
 		fmt.Println("Private key (secp256k1): ", searchResult.priv)
 		privWif := NewWIF(*searchResult.priv)
 		fmt.Println("Private key (WIF-encoded): ", privWif)
+		fmt.Println("You many now import this into your wallet via importprivkey.")
 	}
 
 	return

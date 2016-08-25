@@ -4,9 +4,10 @@ dcrvanity
 dcrvanity is a multi-core vanity address and public-private keypair generator
 for [Decred](https://decred.org/) written in Go.
 
-It takes one or two regexp patterns that are matched against the address.  The
-patterns may be unrelated, although in the case where one pattern implies a
-match on the other, a switch can be given to speed up the search.
+It takes one or two regexp patterns that are matched against addresses in a
+brute force search.  The patterns may be unrelated, although in the case where
+one pattern implies a match on the other, a switch can be given to speed up the
+search.
 
 ## Important
 
@@ -26,43 +27,32 @@ go get -u github.com/chappjc/dcrvanity
 ## Usage
 
 ```none
-Usage: dcrvanity [-testnet] [-simnet] [-pattern1] [-pattern2] [-h]
-Generate a Decred private and public key matching pattern(s).
-
+$ dcrvanity -h
+dcrvanity version 0.1.1-beta
+Usage: dcrvanity [-pattern1] [-pattern2] [-N] [-pat1implies2] [-h]
+Generate a Decred private and public key, with an address matching pattern(s).
   -h            Print this message
-  -testnet      Generate a testnet key instead of mainnet
-  -simnet       Generate a simnet key instead of mainnet
-  -regtest      Generate a regtest key instead of mainnet
-  -pattern1     Primary pattern. dcrvanity will exit if this matches an address.
-  -pattern2     Secondary pattern. dcrvanity will NOT exit, just report, an
-                address match.
-  -pat1implies2 A match on pattern1 implies a match on pattern2.
-  -N            Number of goroutines to launch (essentially the number of
-                cores to use).
+  -pattern1=    (string) Primary regexp pattern. Exit on match.
+  -pattern2=    (string) Secondary regexp pattern. Print and continue on match.
+  -pat1implies2 (bool) A match on pattern1 implies a match on pattern2.
+                Matching on pattern1 skipped unless pattern2 matches.
+  -N=           (int) Number of goroutines to launch (~number of cores to use).
+  -testnet      (bool) Generate a testnet key instead of mainnet.
+  -simnet       (bool) Generate a simnet key instead of mainnet.
 ```
 
 When a match is found, dcrvanity outputs the matching address, which is a
-compressed representation of the actual public key, along with the private key
-that is paired with the public key.  The private key is also compressed; it uses
-a WIF encoding, which is the format required by the `importprivkey` RPC. See the
-next section for details.
+compressed representation of the public key, along with the corresponding
+private key. The private key is also compressed; it uses a Wallet Import Format
+(WIF) encoding, the format required by the `importprivkey` RPC. See the section
+[Importing the Address into Your
+Wallet](#importing-the-address-into-your-wallet) for details.
 
-**But wait!**  Before you start searching, be aware that there are some restrictions
-on the characters that may appear in the address.
+**But wait!**  Before you start searching, be aware that there are some
+[restrictions on the characters](#first-character-restrictions) that may appear
+in the address.
 
-## Importing the Address into Your Wallet
-
-The Wallet Import Format (WIF) represents the private key in the format
-required by `importprivkey`, dcrwallet's RPC used to import the address into
-your wallet.  The private portion of the public-private keypair returned by
-dcrvanity is already in this format. To import the address:
-
- 1. Unlock your wallet with `walletpassphrase`
- 1. Use dcrctl to issue `importprivkey <WIF_key>`
-
- This is described in more detail on [dcrdocs][3].
-
-## Important First Character Restrictions
+## First Character Restrictions
 
 Many character may not appear in the first digit following "Ds" in a Decred
 address. Notably, this includes the potentially confusing characters `0OIl`,
@@ -75,6 +65,18 @@ information.
 Before beginning a potentially long search, test the leading character alone if
 in doubt of its validity.  These checks may be built into the generator in the
 future.
+
+## Importing the Address into Your Wallet
+
+The Wallet Import Format (WIF) represents the private key in the format
+required by `importprivkey`, dcrwallet's RPC used to import the address into
+your wallet.  The private portion of the public-private keypair returned by
+dcrvanity is already in this format. To import the address:
+
+ 1. Unlock your wallet with `walletpassphrase`
+ 1. Use dcrctl to issue `importprivkey <WIF_key>`
+
+ This is described in more detail on [dcrdocs][3].
 
 ## Examples
 
@@ -90,7 +92,7 @@ Use 1 core (the default) to search for an address starting with "Dsdcr":
 Use 2 cores (`-N 2`) to search for an address with "goDCR" following the "Ds"
 prefix:
 
-    $ dcrvanity -pattern1 goDCR -N 2
+    dcrvanity -pattern1 goDCR -N 2
 
 Ultimately search for "fred". Report any case-insensitive match of "fred", but
 don't stop searching. Specify that matching the primary pattern implies a match
@@ -111,10 +113,10 @@ on secondary (`-pat1implies2`).
 First it found an address with "frEd" after Ds, then it found "fred" and
 stopped searching.
 
-Use 3 cores. Ultimately search for "decred", "d3cred", "DECRED", or "D3CRED".
-Secondary pattern (report, but don't stop), implied by pattern1, is a
-case-insensitive version of the primary pattern.  Both patterns may be found
-anywhere in the address because of the leading `.*`.
+Use 3 cores. Ultimately search for "decred" or "d3cred". Secondary pattern
+(report, but don't stop), implied by pattern1, is a case-insensitive version of
+the primary pattern.  Both patterns may be found anywhere in the address because
+of the leading `.*`.
 
     $ dcrvanity -pattern1 ".*d[e3]cred" -pattern2 ".*(?i)d[e3]cred" -N 3
     Primary pattern:  ^Ds.*d[e3]cred
@@ -142,6 +144,10 @@ perhaps you'd also be interested in addresses with capital "J" and "C".
     Woohoo!
     Addr: Dsjn9te4bhf7uoaujotjghp3v9u82tomzbi
     Private key (WIF-encoded):  PmQemTyD7D7f1uTs1au5AZeMeN2qjZ9EUyBjAGp1LobCJ5wtT1zdX
+
+Make any regexp patterns, but keep in mind the computational burden of complex
+patterns, as well as the character restrictions mentioned in [First Character
+Restrictions](#first-character-restrictions).
 
  [1]: https://en.bitcoin.it/wiki/Address_reuse
  [2]: http://bitcoin.stackexchange.com/questions/20621/is-it-safe-to-reuse-a-bitcoin-address/42380#42380
