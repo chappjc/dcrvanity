@@ -89,16 +89,12 @@ Use 1 core (the default) to search for an address starting with "Dsdcr":
     Addr: Dsdcr4zcCVvataLzb5w5m6WdnbrM543EV3N
     Private key (WIF-encoded):  PmQeeekBXGjiPg4SBvHiZsym2zrM8NeTSUgDFjneFaGknaS5NjkER
 
-Use 2 cores (`-N 2`) to search for an address with "goDCR" following the "Ds"
-prefix:
+Use 2 cores (`-N 2`) to ultimately search for "fred" immediately following "Ds".
+Report any case-insensitive match of "fred", but don't stop searching. Specify
+that matching the primary pattern implies a match on secondary
+(`-pat1implies2`).
 
-    dcrvanity -pattern1 goDCR -N 2
-
-Ultimately search for "fred". Report any case-insensitive match of "fred", but
-don't stop searching. Specify that matching the primary pattern implies a match
-on secondary (`-pat1implies2`).
-
-    $ dcrvanity -pattern1 "fred" -pattern2 "f(?i)red" -pat1implies2
+    $ dcrvanity -pattern1 "fred" -pattern2 "f(?i)red" -pat1implies2 -N 2
     Primary pattern:  ^Dsfred
     Secondary pattern:  ^Ds(?i)fred
     808101
@@ -113,10 +109,10 @@ on secondary (`-pat1implies2`).
 First it found an address with "frEd" after Ds, then it found "fred" and
 stopped searching.
 
-Use 3 cores. Ultimately search for "decred" or "d3cred". Secondary pattern
-(report, but don't stop), implied by pattern1, is a case-insensitive version of
-the primary pattern.  Both patterns may be found anywhere in the address because
-of the leading `.*`.
+Ultimately search for "decred" or "d3cred". Secondary pattern (report, but don't
+stop), implied by pattern1, is a case-insensitive version of the primary
+pattern.  Both patterns may be found anywhere in the address because of the
+leading `.*`.
 
     $ dcrvanity -pattern1 ".*d[e3]cred" -pattern2 ".*(?i)d[e3]cred" -N 3
     Primary pattern:  ^Ds.*d[e3]cred
