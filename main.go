@@ -123,6 +123,15 @@ searchloop:
 		// because if the secondary does't match, then neither will primary.
 		if inclusive {
 			if regexSecondary != nil && regexSecondary.MatchString(addr0.EncodeAddress()) {
+
+				if regexPrimary != nil && regexPrimary.MatchString(addr0.EncodeAddress()) {
+					key = key0
+					addr = addr0
+					fmt.Printf("Woohoo!\n")
+					atomic.AddInt64(&searchIterator, i)
+					break searchloop
+				}
+
 				ii := atomic.LoadInt64(&searchIterator) + i
 				fmt.Printf("\r%d\nAddr: %s\n", ii, addr0.EncodeAddress())
 				fmt.Printf("Pubkey compressed: %x\n", pub.SerializeCompressed())
@@ -134,14 +143,6 @@ searchloop:
 				privWifX := NewWIF(privX)
 				fmt.Printf("Private key (WIF-encoded): %s\n", privWifX.String())
 				fmt.Println("Private key (secp256k1): ", privX)
-
-				if regexPrimary != nil && regexPrimary.MatchString(addr0.EncodeAddress()) {
-					key = key0
-					addr = addr0
-					fmt.Printf("Woohoo!\n")
-					atomic.AddInt64(&searchIterator, i)
-					break searchloop
-				}
 			}
 		} else {
 			// primary match does not imply secondary, so check both separately

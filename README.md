@@ -1,15 +1,21 @@
 dcrvanity
 ====
 
-dcrvanity is an address and keypair generator for [decred](https://decred.org/).
+dcrvanity is a multi-core vanity address and public-private keypair generator
+for [Decred](https://decred.org/) written in Go.
 
-It takes one or two regex patterns that are matched against the address.  The
-patterns may be unrelated, but in the case where one pattern implies a match on
-the other, a switch can be given to speed up the search.
+It takes one or two regexp patterns that are matched against the address.  The
+patterns may be unrelated, although in the case where one pattern implies a
+match on the other, a switch can be given to speed up the search.
+
+## Important
+
+Understand the security and privacy implications of [address reuse][1].  [See
+also][2].
 
 ## Requirements
 
-[Go](http://golang.org) 1.6 or newer.
+[Go](http://golang.org) 1.6 or newer, but it runs much faster wih 1.7.
 
 ## Installation
 
@@ -19,7 +25,7 @@ go get -u github.com/chappjc/dcrvanity
 
 ## Usage
 
-```
+```none
 Usage: dcrvanity [-testnet] [-simnet] [-pattern1] [-pattern2] [-h]
 Generate a Decred private and public key matching pattern(s).
 
@@ -28,32 +34,53 @@ Generate a Decred private and public key matching pattern(s).
   -simnet       Generate a simnet key instead of mainnet
   -regtest      Generate a regtest key instead of mainnet
   -pattern1     Primary pattern. dcrvanity will exit if this matches an address.
-  -pattern2     Secondary pattern. dcrvanity will NOT exit, just report, an address match.
+  -pattern2     Secondary pattern. dcrvanity will NOT exit, just report, an
+                address match.
   -pat1implies2 A match on pattern1 implies a match on pattern2.
-  -N            Number of goroutines to launch (essentially the number of cores to use).
+  -N            Number of goroutines to launch (essentially the number of
+                cores to use).
 ```
 
-The pattern should not include any of `0OIl`.
+When a match is found, dcrvanity outputs the matching address, which is a
+compressed representation of the actual public key, along with the private key
+that is paired with the public key.  The private key is also compressed; it uses
+a WIF encoding, which is the format required by the `importprivkey` RPC. See the
+next section for details.
+
+**But wait!**  Before you start searching, be aware that there are some restrictions
+on the characters that may appear in the address.
+
+## Importing the Address into Your Wallet
+
+The Wallet Import Format (WIF) represents the private key in the format
+required by `importprivkey`, dcrwallet's RPC used to import the address into
+your wallet.  The private portion of the public-private keypair returned by
+dcrvanity is already in this format. To import the address:
+
+ 1. Unlock your wallet with `walletpassphrase`
+ 1. Use dcrctl to issue `importprivkey <WIF_key>`
+
+ This is described in more detail on [dcrdocs][3].
 
 ## Important First Character Restrictions
 
-Many character may not appear in the first digit following "Ds" in an encoded
-Decred address. Notably, this includes the potentially confusing characters
-`0OIl`, which are present nowhere in an address. Most capital letters should
-also not be used as the first letter in the input pattern. However, the
-following characters should be possible in the first position after the Ds
-prefix: `[a-npQ-Z]` (lowercase a to p, excluding o, and uppercae Q to Z).
+Many character may not appear in the first digit following "Ds" in a Decred
+address. Notably, this includes the potentially confusing characters `0OIl`,
+which are present nowhere in an address. The following characters should be
+possible in the first position after the Ds prefix: `[a-npQ-Z]` (lowercase a to
+p, excluding o and l, and uppercae Q to Z). Please read more about [base58
+address encoding][4], ripemd160, and [this post by davecgh][5] for more
+information.
 
-Before beginning a potentially long search, test the leading character alone.
-Please read more about [base58 address
-encoding](https://en.bitcoin.it/wiki/Base58Check_encoding) for more information
-about what characters are acceptable.
+Before beginning a potentially long search, test the leading character alone if
+in doubt of its validity.  These checks may be built into the generator in the
+future.
 
 ## Examples
 
-Use 1 core, by default, to search for an address starting with "Dsdcr":
+Use 1 core (the default) to search for an address starting with "Dsdcr":
 
-    $ dcrvanity.exe -pattern1 dcr
+    $ dcrvanity -pattern1 dcr
     Primary pattern:  ^Dsdcr
     30325
     Woohoo!
@@ -63,18 +90,17 @@ Use 1 core, by default, to search for an address starting with "Dsdcr":
 Use 2 cores (`-N 2`) to search for an address with "goDCR" following the "Ds"
 prefix:
 
-    $ dcrvanity.exe -pattern1 goDCR -N 2
+    $ dcrvanity -pattern1 goDCR -N 2
 
 Ultimately search for "fred". Report any case-insensitive match of "fred", but
 don't stop searching. Specify that matching the primary pattern implies a match
 on secondary (`-pat1implies2`).
 
-    $ dcrvanity.exe -pattern1 "fred" -pattern2 "f(?i)red" -pat1implies2
+    $ dcrvanity -pattern1 "fred" -pattern2 "f(?i)red" -pat1implies2
     Primary pattern:  ^Dsfred
     Secondary pattern:  ^Ds(?i)fred
     808101
     Addr: DsfrEdQDGFf6uYbjmkT2D1cDYoW6m9BD7ga
-    Pubkey compressed: 0375b0b472bddb49265131b72094e287ec2694d502310df5af1589ca7eef3b715f
     Private key (WIF-encoded): PmQejCoacLSiLes4aj6vnNgRhtwjkKTDtBMkix3qDKrS8CEFhLcyD
     1898882
     Woohoo!
@@ -90,8 +116,8 @@ Secondary pattern (report, but don't stop), implied by pattern1, is a
 case-insensitive version of the primary pattern.  Both patterns may be found
 anywhere in the address because of the leading `.*`.
 
-    $ dcrvanity.exe -pattern1 ".*(d[e3]cred|D[E3]CRED)" -pattern2 ".*(?i)d[e3]cred" -N 3
-    Primary pattern:  ^Ds.*(d[e3]cred|D[E3]CRED)
+    $ dcrvanity -pattern1 ".*d[e3]cred" -pattern2 ".*(?i)d[e3]cred" -N 3
+    Primary pattern:  ^Ds.*d[e3]cred
     Secondary pattern:  ^Ds.*(?i)d[e3]cred
     4382354
     Addr: Dsg6y9PwYkNj8VUQbLWVcy6qpBtZBDecred
@@ -101,3 +127,24 @@ After 4382354 iterations, it found the address
 Dsg6y9PwYkNj8VUQbLWVcy6qpBtZB**Decred**. The corresponding private key is
 shown WIF-encoded, as this is the format required by `importprivkey`. I have
 redacted the private key for this address since I rather like it.
+
+Now say we want an address with no capital letters.  That would be cool.  and
+perhaps you'd also be interested in addresses with capital "J" and "C".
+
+    $ dcrvanity -pattern1 "[a-z1-9]*$" -pattern2 "[a-z1-9JC]*$" -pat1implies2 -N 3
+    dcrvanity version 0.1.0-beta
+    Primary pattern:  ^Ds[a-z1-9]*$
+    Secondary pattern:  ^Ds[a-z1-9JC]*$
+    12755537
+    Addr: Dsjsrm5zi557982394xqza3JbpmcCd9utni
+    Private key (WIF-encoded): PmQdy9wA1QmLiLGM9yVGr8S1qXVD2oModaHfB9W1sLDLCfFVgoLTi
+    <snip, lots more secondary matches>
+    Woohoo!
+    Addr: Dsjn9te4bhf7uoaujotjghp3v9u82tomzbi
+    Private key (WIF-encoded):  PmQemTyD7D7f1uTs1au5AZeMeN2qjZ9EUyBjAGp1LobCJ5wtT1zdX
+
+ [1]: https://en.bitcoin.it/wiki/Address_reuse
+ [2]: http://bitcoin.stackexchange.com/questions/20621/is-it-safe-to-reuse-a-bitcoin-address/42380#42380
+ [3]: https://docs.decred.org/faq/wallets-and-seeds/#7-how-do-i-import-a-key-that-is-in-wallet-import-format-wif
+ [4]: https://en.bitcoin.it/wiki/Base58Check_encoding
+ [5]: https://forum.decred.org/threads/personalize-your-address-with-vanitygen.253/#post-3077
