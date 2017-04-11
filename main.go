@@ -246,7 +246,7 @@ func main() {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		params = chaincfg.TestNetParams
+		params = chaincfg.TestNet2Params
 	}
 	if *simnet {
 		params = chaincfg.SimNetParams
