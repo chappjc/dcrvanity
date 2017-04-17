@@ -16,7 +16,7 @@ also][2].
 
 ## Requirements
 
-[Go](http://golang.org) 1.6 or newer, but it runs much faster wih 1.7.
+[Go](http://golang.org) 1.6 or newer, but it runs much faster wih 1.7+.
 
 ## Installation
 
@@ -28,7 +28,7 @@ go get -u github.com/chappjc/dcrvanity
 
 ```none
 $ dcrvanity -h
-dcrvanity version 0.1.1-beta
+dcrvanity version 0.1.2-beta
 Usage: dcrvanity [-pattern1] [-pattern2] [-N] [-pat1implies2] [-h]
 Generate a Decred private and public key, with an address matching pattern(s).
   -h            Print this message
@@ -44,9 +44,8 @@ Generate a Decred private and public key, with an address matching pattern(s).
 When a match is found, dcrvanity outputs the matching address, which is a
 compressed representation of the public key, along with the corresponding
 private key. The private key is also compressed; it uses a Wallet Import Format
-(WIF) encoding, the format required by the `importprivkey` RPC. See the section
-[Importing the Address into Your
-Wallet](#importing-the-address-into-your-wallet) for details.
+(WIF) encoding, the format required by dcrwallet's `importprivkey` RPC. See the
+section [Importing the Address into Your Wallet](#importing-the-address-into-your-wallet) for details.
 
 **But wait!**  Before you start searching, be aware that there are some
 [restrictions on the characters](#first-character-restrictions) that may appear

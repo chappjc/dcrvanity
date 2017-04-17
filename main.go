@@ -1,4 +1,4 @@
-// Copyright (c) 2016 Jonathan Chappelow
+// Copyright (c) 2016-2017 Jonathan Chappelow
 // Copyright (c) 2015 The Decred Developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -10,7 +10,6 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
-	//"log"
 	"math"
 	"os"
 	"os/signal"
@@ -39,7 +38,7 @@ var curve = secp256k1.S256()
 
 var params = chaincfg.MainNetParams
 
-// Flag arguments.
+// Command line flag arguments
 var getHelp = flag.Bool("h", false, "Print help message")
 var testnet = flag.Bool("testnet", false, "")
 var simnet = flag.Bool("simnet", false, "")
@@ -240,7 +239,7 @@ func main() {
 		return
 	}
 
-	// Alter the globals to specified network.
+	// Alter the globals to specified network
 	if *testnet {
 		if *simnet {
 			fmt.Println("Error: Only specify one network.")
