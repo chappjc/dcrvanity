@@ -1,0 +1,32 @@
+hash: 36f33f66db0af20b5e6ffb004296e4d862508017cf1d433b92db59d1a4e94e8e
+updated: 2017-05-08T14:46:13.6828814-07:00
+imports:
+- name: github.com/btcsuite/golangcrypto
+  version: 53f62d9b43e87a6c56975cf862af7edf33a8d0df
+  subpackages:
+  - ripemd160
+- name: github.com/decred/blake256
+  version: a840e32d7c31fe2e0218607334cb120a683951a4
+- name: github.com/decred/dcrd
+  version: 5bed758f85159b2ee76240207ba775c40000a4c1
+  subpackages:
+  - chaincfg
+  - chaincfg/chainec
+  - chaincfg/chainhash
+  - dcrec/edwards
+  - dcrec/secp256k1
+  - dcrec/secp256k1/schnorr
+  - wire
+- name: github.com/decred/dcrutil
+  version: ebd2e98736e819ac043d54439969b30144b92ced
+  subpackages:
+  - base58
+- name: github.com/decred/ed25519
+  version: b0909d3f798b97a03c9e77023f97a5301a2a7900
+  subpackages:
+  - edwards25519
+- name: golang.org/x/crypto
+  version: 96846453c37f0876340a66a47f3f75b1f3a6cd2d
+  subpackages:
+  - ripemd160
+testImports: []

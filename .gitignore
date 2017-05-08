@@ -1,3 +1,4 @@
 dcrvanity
 *.exe
 .vscode/
+vendor/

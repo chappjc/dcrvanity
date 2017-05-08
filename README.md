@@ -1,4 +1,4 @@
-dcrvanity
+ddcrvanity
 ====
 
 dcrvanity is a multi-core vanity address and public-private keypair generator
@@ -16,19 +16,23 @@ also][2].
 
 ## Requirements
 
-[Go](http://golang.org) 1.6 or newer, but it runs much faster wih 1.7+.
+[Go](http://golang.org) 1.7 or newer.
 
 ## Installation
 
 ```bash
-go get -u github.com/chappjc/dcrvanity
+git clone https://github.com/chappjc/dcrvanity $GOPATH/src/chappjc/dcrvanity
+cd $GOPATH/src/chappjc/dcrvanity
+go get -u github.com/Masterminds/glide
+$GOPATH/bin/glide install
+go build
 ```
 
 ## Usage
 
 ```none
 $ dcrvanity -h
-dcrvanity version 0.1.2-beta
+dcrvanity version 0.1.3-beta
 Usage: dcrvanity [-pattern1] [-pattern2] [-N] [-pat1implies2] [-h]
 Generate a Decred private and public key, with an address matching pattern(s).
   -h            Print this message
