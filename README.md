@@ -1,4 +1,4 @@
-ddcrvanity
+dcrvanity
 ====
 
 dcrvanity is a multi-core vanity address and public-private keypair generator
