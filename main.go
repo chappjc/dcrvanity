@@ -23,7 +23,7 @@ import (
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainec"
 	"github.com/decred/dcrd/dcrec/secp256k1"
-	"github.com/decred/dcrutil"
+	"github.com/decred/dcrd/dcrutil"
 )
 
 // TODO: Use a logger, if even golang's logger
@@ -219,7 +219,7 @@ func main() {
 		fmt.Println("  -pattern1=    (string) Primary regexp pattern. Exit on match.")
 		fmt.Println("  -pattern2=    (string) Secondary regexp pattern. Print and continue on match.")
 		fmt.Println("  -pat1implies2 (bool) A match on pattern1 implies a match on pattern2. \n" +
-		            "                Matching on pattern1 skipped unless pattern2 matches.")
+			"                Matching on pattern1 skipped unless pattern2 matches.")
 		fmt.Println("  -N=           (int) Number of goroutines to launch (~number of cores to use).")
 		fmt.Println("  -testnet      (bool) Generate a testnet key instead of mainnet.")
 		fmt.Println("  -simnet       (bool) Generate a simnet key instead of mainnet.")
