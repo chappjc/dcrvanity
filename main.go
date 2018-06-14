@@ -1,5 +1,5 @@
+// Copyright (c) 2015, 2018 The Decred developers
 // Copyright (c) 2016-2017 Jonathan Chappelow
-// Copyright (c) 2015 The Decred Developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -19,20 +19,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	//"github.com/davecgh/go-spew/spew"
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainec"
 	"github.com/decred/dcrd/dcrec/secp256k1"
-	"github.com/decred/dcrutil"
+	"github.com/decred/dcrd/dcrutil"
 )
-
-// TODO: Use a logger, if even golang's logger
-// var (
-// 	Trace   *log.Logger
-// 	Info    *log.Logger
-// 	Warning *log.Logger
-// 	Error   *log.Logger
-// )
 
 var curve = secp256k1.S256()
 
@@ -185,29 +176,6 @@ searchloop:
 	//privWif := NewWIF(priv)
 }
 
-// func InitLog(
-// 	traceHandle io.Writer,
-// 	infoHandle io.Writer,
-// 	warningHandle io.Writer,
-// 	errorHandle io.Writer) {
-
-// 	Trace = log.New(traceHandle,
-// 		"TRACE: ",
-// 		log.Ldate|log.Ltime|log.Lshortfile)
-
-// 	Info = log.New(infoHandle,
-// 		"INFO: ",
-// 		log.Ldate|log.Ltime|log.Lshortfile)
-
-// 	Warning = log.New(warningHandle,
-// 		"WARNING: ",
-// 		log.Ldate|log.Ltime|log.Lshortfile)
-
-// 	Error = log.New(errorHandle,
-// 		"ERROR: ",
-// 		log.Ldate|log.Ltime|log.Lshortfile)
-// }
-
 func main() {
 	if runtime.GOOS == "windows" {
 		newLine = "\r\n"
@@ -219,7 +187,7 @@ func main() {
 		fmt.Println("  -pattern1=    (string) Primary regexp pattern. Exit on match.")
 		fmt.Println("  -pattern2=    (string) Secondary regexp pattern. Print and continue on match.")
 		fmt.Println("  -pat1implies2 (bool) A match on pattern1 implies a match on pattern2. \n" +
-		            "                Matching on pattern1 skipped unless pattern2 matches.")
+			"                Matching on pattern1 skipped unless pattern2 matches.")
 		fmt.Println("  -N=           (int) Number of goroutines to launch (~number of cores to use).")
 		fmt.Println("  -testnet      (bool) Generate a testnet key instead of mainnet.")
 		fmt.Println("  -simnet       (bool) Generate a simnet key instead of mainnet.")
@@ -322,7 +290,6 @@ goroutineloop:
 		// Close the channel so multiple goroutines can get the message
 		fmt.Print("CTRL+C hit.  Terminating searchers.")
 		close(quit)
-		return
 	}()
 
 	// Allow each goroutine to receive the quit signal and finish up
@@ -335,6 +302,4 @@ goroutineloop:
 		fmt.Println("Private key (WIF-encoded): ", privWif)
 		fmt.Println("You many now import this into your wallet via importprivkey.")
 	}
-
-	return
 }

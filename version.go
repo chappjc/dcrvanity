@@ -1,3 +1,5 @@
+// Copyright (c) 2015, 2018 The Decred developers
+
 package main
 
 import "fmt"
@@ -10,7 +12,7 @@ type version struct {
 var ver = version{
 	Major: 0,
 	Minor: 1,
-	Patch: 3,
+	Patch: 4,
 	Label: "beta"}
 
 // CommitHash may be set on the build command line:
