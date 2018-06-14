@@ -17,16 +17,16 @@
   revision = "53f62d9b43e87a6c56975cf862af7edf33a8d0df"
 
 [[projects]]
-  branch = "master"
   name = "github.com/dchest/blake256"
   packages = ["."]
   revision = "dee3fe6eb0e98dc774a94fc231f85baf7c29d360"
+  version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/decred/base58"
   packages = ["."]
   revision = "56c501706f00d9e1cfacee19a27117e12da24734"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/decred/dcrd"
@@ -40,18 +40,18 @@
     "dcrutil",
     "wire"
   ]
-  revision = "008e80bf8668544de4200a08927e95e5926439a0"
-  version = "v1.1.2"
+  revision = "fd99f572cfd52ca722ad501ccb34acdcb22b4a67"
+  version = "v1.2.0"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ripemd160"]
-  revision = "91a49db82a88618983a78a06c1cbd4e00ab749ab"
+  revision = "37a17fe027db43f76fd88b056ddf588563fc8722"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b2bef9c09e7edbc322fdb6cac78be875f752eea2435f8426163d1b46cbd4ecab"
+  inputs-digest = "0110482b3235021fdaaf4cb8982aa040e88503f659adab65233b6792f518f5f5"
   solver-name = "gps-cdcl"
   solver-version = 1
