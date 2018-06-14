@@ -20,11 +20,13 @@ also][2].
 
 ## Installation
 
+You must use `dep` to fetch the correct dependencies.
+
 ```bash
 git clone https://github.com/chappjc/dcrvanity $GOPATH/src/chappjc/dcrvanity
 cd $GOPATH/src/chappjc/dcrvanity
-go get -u github.com/Masterminds/glide
-$GOPATH/bin/glide install
+go get -u -v github.com/golang/dep/cmd/dep
+$GOPATH/bin/dep ensure
 go build
 ```
 
